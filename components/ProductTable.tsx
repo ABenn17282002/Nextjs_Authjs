@@ -1,5 +1,5 @@
 import React from 'react'
-import { getProductByUser } from '@/lib/data'
+import { getProductByUser } from '@/data/product'
 import { format } from "date-fns";
 
 export default  async function ProductTable() {

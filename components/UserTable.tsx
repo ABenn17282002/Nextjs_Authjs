@@ -1,5 +1,5 @@
 import React from 'react'
-import { getUsers } from '@/lib/data'
+import { getUsers } from '@/data/user'
 import { format } from "date-fns";
 
 export default  async function UserTable() {

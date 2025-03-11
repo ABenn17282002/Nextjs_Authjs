@@ -7,6 +7,7 @@ import { verifyPassword } from "@/lib/hashFunctions"; // 検証関数
 import { NextResponse } from "next/server";
 import Google from "next-auth/providers/google";
 import Github from "next-auth/providers/github";
+import { getUserById } from "./data/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -67,59 +68,92 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  events: {
+    async linkAccount({ user }) {
+        try {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { emailVerified: new Date() }
+            });
+        } catch (error) {
+            console.error("Failed to update emailVerified:", error);
+        }
+    }
+  },
   callbacks: {
     async signIn({ user, account }) {
-      // OAuth プロバイダーの場合（Google, GitHub, Twitter, Facebookなど）
       if (account?.provider && account.provider !== "credentials") {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-          include: { accounts: true }, // 既存のアカウント情報も取得
-        });
-    
-        if (existingUser) {
-          // 既存のユーザーがいるが、OAuth アカウントが未リンクの場合
-          const accountExists = existingUser.accounts.some(acc => acc.provider === account.provider);
-    
-          if (!accountExists) {
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                type: account.type,
-                access_token: account.access_token,
-                refresh_token: account.refresh_token,
-                expires_at: account.expires_at,
-              },
-            });
+          // OAuth ユーザーの処理
+          if (!user.email) {
+              return false; // Email が undefined の場合はログイン拒否
           }
-        } else {
-          // 初めてのユーザーなので新規作成
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name,
-              image: user.image,
-              salt: null, // OAuth は salt 不要
-              password: null, // OAuth は password も不要
-              accounts: {
-                create: {
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                  type: account.type,
-                  access_token: account.access_token,
-                  refresh_token: account.refresh_token,
-                  expires_at: account.expires_at,
-                },
-              },
-            },
+
+          const existingUser = await prisma.user.findUnique({
+              where: { email: user.email },
+              include: { accounts: true },
           });
-        }
+
+          if (existingUser) {
+              const accountExists = existingUser.accounts.some(acc => acc.provider === account.provider);
+
+              if (!accountExists) {
+                  await prisma.account.create({
+                      data: {
+                          userId: existingUser.id,
+                          provider: account.provider,
+                          providerAccountId: account.providerAccountId,
+                          type: account.type,
+                          access_token: account.access_token,
+                          refresh_token: account.refresh_token,
+                          expires_at: account.expires_at,
+                      },
+                  });
+              }
+              return true;
+          }
+          // OAuth 新規ユーザー作成
+          await prisma.user.create({
+              data: {
+                  email: user.email,
+                  name: user.name,
+                  image: user.image,
+                  salt: null, // OAuth は salt 不要
+                  password: null, // OAuth は password も不要
+                  accounts: {
+                      create: {
+                          provider: account.provider,
+                          providerAccountId: account.providerAccountId,
+                          type: account.type,
+                          access_token: account.access_token,
+                          refresh_token: account.refresh_token,
+                          expires_at: account.expires_at,
+                      },
+                  },
+              },
+          });
+
+          return true;
       }
+
+      // メール・パスワード認証 (credentials)
+      if (!user.id) {
+          return false; // user.id が undefined の場合はログイン拒否
+      }
+
+      const existingUser = await getUserById(user.id);
+
+      if (!existingUser) {
+          return false; // ユーザーが存在しない場合はログイン拒否
+      }
+
+      if (!existingUser.emailVerified) {
+          return false; // メール認証されていない場合はログイン拒否
+      }
+
+      // TODO: Add 2FA check
+
       return true;
     },
-    
-
     async jwt({ token, user }) {
       if(user) token.role = user.role
       console.log(token)

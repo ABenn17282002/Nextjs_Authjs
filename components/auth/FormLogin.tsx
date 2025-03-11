@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function FormLogin() {
   const [error, setError] = useState<string | null>(null); // エラーメッセージを格納
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); 
   const [formValues, setFormValues] = useState({
     email: "",
     password: "",
@@ -23,6 +24,7 @@ export default function FormLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null); // エラーメッセージをリセット
+    setSuccessMessage(null); 
 
     const formData = {
       email: formValues.email,
@@ -57,6 +59,12 @@ export default function FormLogin() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {successMessage && (
+        <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-100" role="alert">
+          {successMessage}
+        </div>
+      )}
+
       {error && (
         <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-100" role="alert">
           {error}
