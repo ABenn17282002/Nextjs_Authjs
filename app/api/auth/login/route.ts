@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignInSchema } from "@/lib/zod";
-import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/hashFunctions";
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv"; // Vercel KV
 import { signIn } from "@/auth";
+import { generateVerificationToken } from "@/lib/token";
+import { getUserByEmail } from "@/data/user";
+import { sendVerificationEmail } from "@/lib/mail";
 
 // Ratelimit インスタンス（Vercel KV を使用）
 const ratelimit = new Ratelimit({
@@ -48,16 +50,33 @@ export async function POST(req: NextRequest) {
     const { email, password } = validatedFields.data;
 
     // ユーザーをデータベースから取得
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await getUserByEmail(email);
 
-    if (!user || !user.salt || !user.password) {
+    if (!existingUser || !existingUser.salt || !existingUser.password) {
       return NextResponse.json({ message: "Invalid email or password." }, { status: 401 });
     }
 
+    if (!existingUser.emailVerified) {
+      const verificationToken = await generateVerificationToken(existingUser.email);
+  
+      // verificationToken の null チェックを追加
+      if (!verificationToken || !verificationToken.email || !verificationToken.token) {
+          return NextResponse.json(
+              { error: "Failed to generate verification token" },
+              { status: 500 }
+          );
+      }
+  
+      await sendVerificationEmail(verificationToken.email, verificationToken.token);
+  
+      return NextResponse.json(
+          { success: "Confirmation email sent!" },
+          { status: 200 }
+      );
+  }
+
     // パスワードの検証
-    const isPasswordValid = await verifyPassword(password, user.salt, user.password);
+    const isPasswordValid = await verifyPassword(password, existingUser.salt, existingUser.password);
     if (!isPasswordValid) {
       return NextResponse.json({ message: "Invalid email or password." }, { status: 401 });
     }
