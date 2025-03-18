@@ -40,7 +40,12 @@ export const signUpCredentials = async (
 
     const verificationToken = await generateVerificationToken(email);
     
+    if (!verificationToken) {
+      return { message: "Failed to generate verification token" };
+    }
+    
     console.log("Generated verificationToken:", verificationToken);
+    
     await sendVerificationEmail(
       verificationToken.email,
       verificationToken.token,
@@ -51,8 +56,8 @@ export const signUpCredentials = async (
     return { message: "Failed to register user" };
   }
 
-  // 登録後にログインページへリダイレクト
-  redirect("/login");
+    // 登録後にログインページへリダイレクト
+    redirect("/login");
 };
 
 // ログインのアクション

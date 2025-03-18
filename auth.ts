@@ -82,6 +82,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account }) {
+      console.log({
+        user,
+        account
+      })
       if (account?.provider && account.provider !== "credentials") {
           // OAuth ユーザーの処理
           if (!user.email) {
