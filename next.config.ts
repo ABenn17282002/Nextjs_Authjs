@@ -2,9 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      "lh3.googleusercontent.com", // Google OAuth の画像
-      "avatars.githubusercontent.com", // GitHub のプロフィール画像
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com", //Google
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com", //Github
+      },
     ],
   },
 };
