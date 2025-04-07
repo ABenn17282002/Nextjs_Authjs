@@ -4,9 +4,7 @@ import { verifyPassword } from "@/lib/hashFunctions";
 import { Ratelimit } from "@upstash/ratelimit";
 import { kv } from "@vercel/kv"; // Vercel KV
 import { signIn } from "@/auth";
-import { generateVerificationToken } from "@/lib/token";
 import { getUserByEmail } from "@/data/user";
-import { sendVerificationEmail } from "@/lib/mail";
 
 // Ratelimit インスタンス（Vercel KV を使用）
 const ratelimit = new Ratelimit({
@@ -48,53 +46,35 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, password } = validatedFields.data;
-
     // ユーザーをデータベースから取得
-    const existingUser = await getUserByEmail(email);
+    const user = await getUserByEmail(email);
 
-    if (!existingUser || !existingUser.salt || !existingUser.password) {
-      return NextResponse.json({ message: "Invalid email or password." }, { status: 401 });
+    if (!user || !user.password || !user.salt) {
+      return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
     }
 
-    if (!existingUser.emailVerified) {
-      const verificationToken = await generateVerificationToken(existingUser.email);
-  
-      // verificationToken の null チェックを追加
-      if (!verificationToken || !verificationToken.email || !verificationToken.token) {
-          return NextResponse.json(
-              { error: "Failed to generate verification token" },
-              { status: 500 }
-          );
-      }
-  
-      await sendVerificationEmail(verificationToken.email, verificationToken.token);
-  
+    if (!user.emailVerified) {
       return NextResponse.json(
-          { success: "Confirmation email sent!" },
-          { status: 200 }
+        { message: "Email not verified. Please check your inbox." },
+        { status: 403 }
       );
-  }
-
-    // パスワードの検証
-    const isPasswordValid = await verifyPassword(password, existingUser.salt, existingUser.password);
-    if (!isPasswordValid) {
-      return NextResponse.json({ message: "Invalid email or password." }, { status: 401 });
     }
 
-    // 認証処理 `redirect: false` を追加してリダイレクトを防ぐ
+    const isPasswordValid = await verifyPassword(password, user.salt, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
+    }
+
     const result = await signIn("credentials", { email, password, redirect: false });
 
     if (!result) {
       return NextResponse.json({ message: "Login failed" }, { status: 401 });
     }
 
-    // 認証成功時のレスポンス
     return NextResponse.json({ message: "Login successful", redirectTo: "/dashboard" });
 
   } catch (error) {
-
-    console.error("Unexpected error:", error);
+    console.error("Login error:", error);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
-    
   }
 }

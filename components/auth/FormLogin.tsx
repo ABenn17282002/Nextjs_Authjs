@@ -5,51 +5,42 @@ import { LoginButton } from "../button";
 import Link from "next/link";
 
 export default function FormLogin() {
-  const [error, setError] = useState<string | null>(null); // エラーメッセージを格納
-  const [successMessage, setSuccessMessage] = useState<string | null>(null); 
-  const [formValues, setFormValues] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false); // パスワードの表示/非表示を制御
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formValues, setFormValues] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // エラーメッセージをリセット
-    setSuccessMessage(null); 
+    setError(null);
+    setSuccessMessage(null);
 
-    const formData = {
-      email: formValues.email,
-      password: formValues.password,
-    };
-    
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json", // JSON を送信
-        },
-        body: JSON.stringify(formData), // JSON に変換して送信
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formValues),
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.message || "Login failed. Please try again."); // エラーメッセージを設定
+        // 未認証ユーザーの場合
+        if (result.message === "Email not verified") {
+          setSuccessMessage("Please check your email to verify your account.");
+        } else {
+          setError(result.message || "Login failed");
+        }
       } else if (result.redirectTo) {
-        window.location.href = result.redirectTo; // ダッシュボードにリダイレクト
+        window.location.href = result.redirectTo;
       }
-    } catch (error) {
-      console.error("Unexpected login error:", error);
-      setError("Something went wrong. Please try again later.");
+    } catch {
+      setError("Something went wrong.");
     }
   };
 
