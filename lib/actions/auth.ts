@@ -4,8 +4,8 @@ import { RegisterSchema } from "@/lib/zod"; // バリデーションスキーマ
 import { prisma } from "@/lib/prisma"; // Prisma クライアント
 import { redirect } from "next/navigation"; // ページ遷移用
 import { hashPassword } from "@/lib/hashFunctions"; // ハッシュ関数
-import { generateVerificationToken } from "./token";
-import { sendVerificationEmail } from "./mail";
+import { generateVerificationToken } from "../token";
+import { sendVerificationEmail } from "../mail";
 
 // ユーザー登録のアクション
 export const signUpCredentials = async (
