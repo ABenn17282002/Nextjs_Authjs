@@ -10,6 +10,7 @@ import Github from "next-auth/providers/github";
 import { getUserById } from "./data/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages:{
