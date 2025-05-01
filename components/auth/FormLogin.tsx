@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LoginButton } from "../button";
 import Link from "next/link";
+import { Button } from "../ui/button";
 
 export default function FormLogin() {
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +101,14 @@ export default function FormLogin() {
           </button>
         </div>
       </div>
+      <Button
+        asChild
+        size="sm"
+        variant="link"
+        className="px-0 font-normal"
+      >
+        <Link href="/reset">Forgot your Password？</Link>
+      </Button>
       <LoginButton/>
       <p className="text-sm font-light text-gray-500">
           Don&apos;t have an account yet? 

@@ -28,7 +28,7 @@ model User {
   products     Product[]
   // Optional for WebAuthn support
   Authenticator Authenticator[]
- 
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("users")
@@ -70,6 +70,15 @@ model VerificationToken {
   email    String
   token    String   @unique
   expires  DateTime
+
+  @@unique([email, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
 
   @@unique([email, token])
 }

@@ -1,4 +1,5 @@
 import { object, string } from "zod";
+import { z } from "zod";
 
 export const SignInSchema = object({
   email: string().email("Invalid Email"),
@@ -23,4 +24,23 @@ export const RegisterSchema = object({
 }).refine((data) => data.password === data.ConfirmPassword, {
   message: "Password does not match",
   path: ["ConfirmPassword"],
+});
+
+// This schema is used to validate the email for password reset
+export const resetSchema = z.object({
+  email: z
+    .string()
+    .min(1, { message: "Email is required." })
+    .email({ message: "Please enter a valid email address." }),
+});
+
+// This schema is used to validate the new password
+export const ResetPasswordSchema = object({
+  password: string()
+    .min(8, "Password must be more than 8 characters")
+    .max(32, "Password must be less than 32 characters")
+    .regex(
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[.,:;!?'"()[\]{}+\-*/%=<>@#$^&*()_~`])[A-Za-z\d.,:;!?'"()[\]{}+\-*/%=<>@#$^&*()_~`]+$/,
+      "Password must include at least one letter, one number, and one special character"
+    ),
 });
