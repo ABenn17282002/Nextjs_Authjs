@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 export default async function Dashboard() {
     // セッションを取得
     const session = await auth();
-    console.log(session);
 
     return (
     <div className="max-w-screen-xl mx-auto py-6 px-4">

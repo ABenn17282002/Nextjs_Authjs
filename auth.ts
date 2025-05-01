@@ -62,9 +62,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
 
         if (!isPasswordValid) return null;
-        console.log("Authorize - User found:", user);
-
-        return { id: user.id, name: user.name, email: user.email, role: user.role }; 
+          return { id: user.id, name: user.name, email: user.email, role: user.role }; 
       },
     }),
   ],
@@ -156,7 +154,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user }) {
       if(user) token.role = user.role
-      console.log(token)
       return token
     },
     
@@ -171,7 +168,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as string | "";
       }
     
-      console.log("Session Callback - After:", session);
       return session;
     },
     
