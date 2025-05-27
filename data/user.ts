@@ -18,18 +18,25 @@ export const getUsers = async () => {
 
 export const getUserByEmail = async (email: string) => {
   try {
-      const user = await prisma.user.findUnique({ where: { email } });
+      const users = await prisma.user.findMany();
+      console.log("Prisma users:", users.map(u => u.email));
+
+      const user = await prisma.user.findFirst({
+        where: { email },
+      });
+      console.log("user result:", user);
 
       return user;
-  } catch {
+  } catch (error) {
+      console.error("getUserByEmail error:", error);
       return null;
   }
 };
 
+
 export const getUserById = async (id: string) => {
   try {
       const user = await prisma.user.findUnique({ where: { id } });
-
       return user;
   } catch {
       return null;

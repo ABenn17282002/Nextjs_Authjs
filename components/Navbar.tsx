@@ -42,13 +42,15 @@ export default async function Navbar() {
                   {session.user.role}
                 </span>
               </div>
-              <Image
-                src={session.user.image || "/default-avatar.png"}
-                alt="avatar"
-                width={64}
-                height={64}
-                className="w-8 h-8 rounded-full"
-              />
+              <Link href="/profile">
+                <Image
+                  src={session.user.image || "/default-avatar.png"}
+                  alt="avatar"
+                  width={64}
+                  height={64}
+                  className="w-8 h-8 rounded-full"
+                />
+              </Link>
               {/* サインイン時のみ表示 */}
               <LogoutButton />
             </div>

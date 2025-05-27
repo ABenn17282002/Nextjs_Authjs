@@ -24,6 +24,8 @@ model User {
   salt          String? //←nullableに修正
   role          String          @default("user")
   accounts     Account[]
+  isTwoFactorEnabled     Boolean  @default(false) //  2FA有効フラグ
+  twoFactorConfirmation  TwoFactorConfirmation? // 2FA確認済みリレーション（後述）
   sessions     Session[]
   products     Product[]
   // Optional for WebAuthn support
@@ -31,9 +33,9 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@map("users")
+  @@map("user")
 }
- 
+
 model Account {
   userId            String
   type              String
@@ -106,4 +108,19 @@ model Product {
   updatedAt DateTime @updatedAt
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TwoFactorToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id     String  @id @default(cuid())
+  user   User    @relation(fields: [userId], references: [id])
+  userId String  @unique
 }

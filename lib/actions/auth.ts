@@ -2,14 +2,12 @@
 
 import { RegisterSchema } from "@/lib/zod"; // バリデーションスキーマ
 import { prisma } from "@/lib/prisma"; // Prisma クライアント
-import { redirect } from "next/navigation"; // ページ遷移用
 import { hashPassword } from "@/lib/hashFunctions"; // ハッシュ関数
 import { generateVerificationToken } from "../token";
 import { sendVerificationEmail } from "../mail";
 
 // ユーザー登録のアクション
 export const signUpCredentials = async (
-  prevState: unknown,
   formData: FormData
 ) => {
   // Zod スキーマで検証
@@ -20,6 +18,8 @@ export const signUpCredentials = async (
   if (!validatedFields.success) {
     return {
       error: validatedFields.error.flatten().fieldErrors,
+      message: "Validation failed",
+      success: null,
     };
   }
 
@@ -46,13 +46,21 @@ export const signUpCredentials = async (
       verificationToken.token,
     );
 
+    return {
+      success: "User registered successfully. Please check your email for verification.",
+      error: {},
+      message: "",
+    };
+
   } catch (error) {
     console.error(error);
-    return { message: "Failed to register user" };
+    return { 
+      error: {},
+      message: "Failed to register user" ,
+      success: null,
+    };
   }
 
-  // 登録後にログインページへリダイレクト
-  redirect("/login");
 };
 
 // ログインのアクション
