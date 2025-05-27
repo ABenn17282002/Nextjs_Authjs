@@ -9,9 +9,21 @@ import Github from "next-auth/providers/github";
 import { getUserById } from "./data/user";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.AUTH_SECRET, 
+  secret: process.env.NEXTAUTH_SECRET, 
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  cookies: {
+  pkceCodeVerifier: {
+    name: "authjs.pkce.code_verifier",
+    options: {
+      httpOnly: true,
+      sameSite: "lax", // ← default だが環境によっては明示すると安定
+      path: "/",
+      secure: false, // ← localhost 環境では false（本番では true）
+      },
+    },
+  },
+
   pages:{
     signIn:"/login",
   },
@@ -19,10 +31,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Github({
       clientId: process.env.AUTH_GITHUB_ID!,
       clientSecret: process.env.AUTH_GITHUB_SECRET!,
+      checks: ["pkce", "state"], 
     }),
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      checks: ["pkce", "state"], 
       authorization: {
         params: {
           prompt: "consent",

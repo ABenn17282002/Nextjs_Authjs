@@ -33,7 +33,7 @@ export async function newVerification(token: string) {
     },
   });
 
-  await prisma.verificationToken.delete({
+  await prisma.verificationToken.deleteMany({
     where: { id: existingToken.id },
   });
 

@@ -12,10 +12,6 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.fixedWindow(5, "15 m"), // 15分間に5回まで許可
 });
 
-// Edge Runtime を設定
-export const config = {
-  runtime: "edge",
-};
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +45,7 @@ export async function POST(req: NextRequest) {
     // ユーザーをデータベースから取得
     const user = await getUserByEmail(email);
 
+
     if (!user || !user.password || !user.salt) {
       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
     }
@@ -61,6 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     const isPasswordValid = await verifyPassword(password, user.salt, user.password);
+    
     if (!isPasswordValid) {
       return NextResponse.json({ message: "Invalid email or password" }, { status: 401 });
     }

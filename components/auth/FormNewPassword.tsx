@@ -52,15 +52,15 @@ export function NewPasswordForm() {
 
   return (
     <CardWrapper
-      headerLabel="新しいパスワードを入力"
-      backButtonLabel="ログイン画面に戻る"
+      headerLabel="Enter new password"
+      backButtonLabel="Back to Login"
       backButtonHref="/login"
     >
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="relative">
         <Input
           type={showPassword ? "text" : "password"}
-          placeholder="新しいパスワード"
+          placeholder="New Password"
           {...register("password")}
           className="pr-10" // アイコン分の余白
         />
@@ -73,7 +73,7 @@ export function NewPasswordForm() {
       </div>
 
       <Button type="submit" className="w-full">
-      パスワードを更新
+      Update Password
       </Button>
 
       {message && (

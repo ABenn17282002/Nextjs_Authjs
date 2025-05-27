@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req:request, secret: process.env.AUTH_SECRET });
+  const token = await getToken({ req:request, secret: process.env.NEXTAUTH_SECRET});
 
   const isLoggedIn = !!token;
   const pathname = request.nextUrl.pathname;
@@ -29,7 +29,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: [
-      "/((?!api/auth|api|_next/static|_next/image|favicon.ico).*)",
-    ],
-  };
+  matcher: [
+    "/dashboard/:path*",
+    "/user/:path*",
+    "/product/:path*",
+    "/admin/:path*",
+    "/login",
+  ],
+};
